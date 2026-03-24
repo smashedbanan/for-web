@@ -9,7 +9,7 @@ import {
 } from "solid-js";
 import { RoomContext } from "solid-livekit-components";
 
-import { Room } from "livekit-client";
+import { ExternalE2EEKeyProvider, Room } from "livekit-client";
 import { DenoiseTrackProcessor } from "livekit-rnnoise-processor";
 import { Channel } from "stoat.js";
 
@@ -87,6 +87,11 @@ class Voice {
   async connect(channel: Channel, auth?: { url: string; token: string }) {
     this.disconnect();
 
+    const keyProvider = new ExternalE2EEKeyProvider();
+    const e2eeWorker = new Worker(
+      new URL("livekit-client/e2ee-worker", import.meta.url),
+    );
+
     const room = new Room({
       audioCaptureDefaults: {
         deviceId: this.#settings.preferredAudioInputDevice,
@@ -102,6 +107,10 @@ class Voice {
           maxBitrate: this.#settings.screenShareBitrate,
           maxFramerate: this.#settings.screenShareFramerate,
         },
+      },
+      e2ee: {
+        keyProvider,
+        worker: e2eeWorker,
       },
     });
 
@@ -136,6 +145,10 @@ class Voice {
     if (!auth) {
       auth = await channel.joinCall("worldwide");
     }
+
+    await keyProvider.setKey(channel.id);
+
+    await room.setE2EEEnabled(true);
 
     await room.connect(auth.url, auth.token, {
       autoSubscribe: false,
