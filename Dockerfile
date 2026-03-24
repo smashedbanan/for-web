@@ -52,6 +52,9 @@ ENV VITE_CFG_ENABLE_VIDEO=__VITE_CFG_ENABLE_VIDEO__
 ENV VITE_GIFBOX_URL=__VITE_GIFBOX_URL__
 ENV BASE_PATH=/
 
+# Increase max size of JVM memory so it doesn't OOM.
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
 RUN pnpm --filter client exec vite build
 
 # ============================================
