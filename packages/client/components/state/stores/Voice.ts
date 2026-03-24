@@ -24,6 +24,11 @@ export interface TypeVoice {
   inputVolume: number;
   outputVolume: number;
 
+  screenShareWidth: number;
+  screenShareHeight: number;
+  screenShareFramerate: number;
+  screenShareBitrate: number;
+
   userVolumes: Record<string, number>;
   userMutes: Record<string, boolean>;
 }
@@ -57,6 +62,10 @@ export class Voice extends AbstractStore<"voice", TypeVoice> {
       autoGainControl: true,
       inputVolume: 1.0,
       outputVolume: 1.0,
+      screenShareWidth: 1920,
+      screenShareHeight: 1080,
+      screenShareFramerate: 30,
+      screenShareBitrate: 10_000_000,
       userVolumes: {},
       userMutes: {},
     };
@@ -102,6 +111,22 @@ export class Voice extends AbstractStore<"voice", TypeVoice> {
 
     if (typeof input.outputVolume === "number") {
       data.outputVolume = input.outputVolume;
+    }
+
+    if (typeof input.screenShareWidth === "number" && input.screenShareWidth > 0) {
+      data.screenShareWidth = input.screenShareWidth;
+    }
+
+    if (typeof input.screenShareHeight === "number" && input.screenShareHeight > 0) {
+      data.screenShareHeight = input.screenShareHeight;
+    }
+
+    if (typeof input.screenShareFramerate === "number" && input.screenShareFramerate > 0) {
+      data.screenShareFramerate = input.screenShareFramerate;
+    }
+
+    if (typeof input.screenShareBitrate === "number" && input.screenShareBitrate > 0) {
+      data.screenShareBitrate = input.screenShareBitrate;
     }
 
     if (typeof input.userVolumes === "object") {
@@ -207,6 +232,41 @@ export class Voice extends AbstractStore<"voice", TypeVoice> {
    */
   set outputVolume(value: number) {
     this.set("outputVolume", value);
+  }
+
+  /**
+   * Set screen share settings
+   */
+  set screenShareWidth(value: number) {
+    this.set("screenShareWidth", value);
+  }
+
+  set screenShareHeight(value: number) {
+    this.set("screenShareHeight", value);
+  }
+
+  set screenShareFramerate(value: number) {
+    this.set("screenShareFramerate", value);
+  }
+
+  set screenShareBitrate(value: number) {
+    this.set("screenShareBitrate", value);
+  }
+
+  get screenShareWidth(): number {
+    return this.get().screenShareWidth;
+  }
+
+  get screenShareHeight(): number {
+    return this.get().screenShareHeight;
+  }
+
+  get screenShareFramerate(): number {
+    return this.get().screenShareFramerate;
+  }
+
+  get screenShareBitrate(): number {
+    return this.get().screenShareBitrate;
   }
 
   /**

@@ -5,8 +5,10 @@ import { styled } from "styled-system/jsx";
 
 import { CONFIGURATION } from "@revolt/common";
 import { useVoice } from "@revolt/rtc";
-import { Button, IconButton } from "@revolt/ui/components/design";
+import { useState } from "@revolt/state";
+import { Button, IconButton, Slider, Text } from "@revolt/ui/components/design";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
+import { ContextMenu, ContextMenuItem } from "@revolt/app/menus/ContextMenu";
 
 export function VoiceCallCardActions(props: { size: "xs" | "sm" }) {
   const voice = useVoice();
@@ -109,6 +111,18 @@ export function VoiceCallCardActions(props: { size: "xs" | "sm" }) {
           <Symbol>screen_share</Symbol>
         </Show>
       </IconButton>
+      <Show when={isVideoEnabled()}>
+        <IconButton
+          size={props.size}
+          variant="tonal"
+          use:floating={{
+            contextMenu: () => <ScreenShareSettingsMenu />,
+            contextMenuHandler: "click",
+          }}
+        >
+          <Symbol>more_vert</Symbol>
+        </IconButton>
+      </Show>
       <Button
         size={props.size}
         variant="_error"
@@ -117,6 +131,116 @@ export function VoiceCallCardActions(props: { size: "xs" | "sm" }) {
         <Symbol>call_end</Symbol>
       </Button>
     </Actions>
+  );
+}
+
+const RESOLUTION_PRESETS = [
+  { label: "720p", width: 1280, height: 720 },
+  { label: "1080p", width: 1920, height: 1080 },
+  { label: "1440p", width: 2560, height: 1440 },
+  { label: "4K", width: 3840, height: 2160 },
+] as const;
+
+const SettingsMenuHeader = styled("div", {
+  base: {
+    padding: "var(--gap-sm) var(--gap-lg)",
+    fontWeight: 600,
+    fontSize: "0.85rem",
+    color: "var(--md-sys-color-on-surface-variant)",
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
+  },
+});
+
+const SettingsSection = styled("div", {
+  base: {
+    display: "flex",
+    flexDirection: "column",
+    padding: "var(--gap-sm) 0",
+  },
+});
+
+const SettingsLabel = styled("div", {
+  base: {
+    padding: "0 var(--gap-lg)",
+    fontSize: "0.8rem",
+    color: "var(--md-sys-color-on-surface-variant)",
+    marginBottom: "var(--gap-xs)",
+  },
+});
+
+const SliderWrapper = styled("div", {
+  base: {
+    padding: "0 var(--gap-lg)",
+    minWidth: "200px",
+  },
+});
+
+function ScreenShareSettingsMenu() {
+  const state = useState();
+
+  return (
+    <ContextMenu
+      onMouseDown={(e: MouseEvent) => e.stopImmediatePropagation()}
+      onClick={(e: MouseEvent) => e.stopImmediatePropagation()}
+    >
+      <SettingsMenuHeader>Screen Share Settings</SettingsMenuHeader>
+      <SettingsSection>
+        <SettingsLabel>Resolution</SettingsLabel>
+        {RESOLUTION_PRESETS.map((preset) => (
+          <ContextMenuItem
+            button
+            action
+            selected={
+              state.voice.screenShareWidth === preset.width &&
+              state.voice.screenShareHeight === preset.height
+            }
+            onClick={() => {
+              state.voice.screenShareWidth = preset.width;
+              state.voice.screenShareHeight = preset.height;
+            }}
+          >
+            <Text>
+              {preset.label} ({preset.width}x{preset.height})
+            </Text>
+          </ContextMenuItem>
+        ))}
+      </SettingsSection>
+      <SettingsSection>
+        <SettingsLabel>
+          Framerate: {state.voice.screenShareFramerate} fps
+        </SettingsLabel>
+        <SliderWrapper>
+          <Slider
+            min={5}
+            max={30}
+            step={5}
+            value={state.voice.screenShareFramerate}
+            onInput={(event) =>
+              (state.voice.screenShareFramerate = event.currentTarget.value)
+            }
+            labelFormatter={(value) => `${value} fps`}
+          />
+        </SliderWrapper>
+      </SettingsSection>
+      <SettingsSection>
+        <SettingsLabel>
+          Bitrate: {(state.voice.screenShareBitrate / 1_000_000).toFixed(1)} Mbps
+        </SettingsLabel>
+        <SliderWrapper>
+          <Slider
+            min={500_000}
+            max={10_000_000}
+            step={500_000}
+            value={state.voice.screenShareBitrate}
+            onInput={(event) =>
+              (state.voice.screenShareBitrate = event.currentTarget.value)
+            }
+            labelFormatter={(value) => `${(value / 1_000_000).toFixed(1)} Mbps`}
+          />
+        </SliderWrapper>
+      </SettingsSection>
+    </ContextMenu>
   );
 }
 

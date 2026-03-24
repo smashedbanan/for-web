@@ -97,6 +97,12 @@ class Voice {
       audioOutput: {
         deviceId: this.#settings.preferredAudioOutputDevice,
       },
+      publishDefaults: {
+        screenShareEncoding: {
+          maxBitrate: this.#settings.screenShareBitrate,
+          maxFramerate: this.#settings.screenShareFramerate,
+        },
+      },
     });
 
     batch(() => {
@@ -177,8 +183,22 @@ class Voice {
   async toggleScreenshare() {
     const room = this.room();
     if (!room) throw "invalid state";
+    const enabling = !room.localParticipant.isScreenShareEnabled;
     await room.localParticipant.setScreenShareEnabled(
-      !room.localParticipant.isScreenShareEnabled,
+      enabling,
+      enabling ? {
+        resolution: {
+          width: this.#settings.screenShareWidth,
+          height: this.#settings.screenShareHeight,
+          frameRate: this.#settings.screenShareFramerate,
+        },
+      } : undefined,
+      enabling ? {
+        screenShareEncoding: {
+          maxBitrate: this.#settings.screenShareBitrate,
+          maxFramerate: this.#settings.screenShareFramerate,
+        },
+      } : undefined,
     );
 
     this.#setScreenshare(room.localParticipant.isScreenShareEnabled);
